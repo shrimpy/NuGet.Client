@@ -390,10 +390,10 @@ namespace NuGetVSExtension
                 VisualStudioAccountProvider.FactoryMethod,
                 errorDelegate);
 
-            var vstsProvider = importer.GetProvider();
-            if (vstsProvider != null)
+            var importedProviders = importer.GetProviders();
+            if (importedProviders.Count != 0)
             {
-                credentialProviders.Add(vstsProvider);
+                credentialProviders.AddRange(importedProviders);
             }
 
             var webProxy = (IVsWebProxy)GetService(typeof(SVsWebProxy));

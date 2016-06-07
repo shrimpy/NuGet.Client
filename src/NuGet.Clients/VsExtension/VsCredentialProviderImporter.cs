@@ -2,11 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using EnvDTE;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell;
 using NuGet.Credentials;
 using NuGet.PackageManagement.UI;
 using NuGet.PackageManagement.VisualStudio;
@@ -48,7 +48,7 @@ namespace NuGetVSExtension
         /// <param name="errorDelegate">Used to write error messages to the user.</param>
         /// <param name="initializer">Init method used to supply MEF imports. Should only
         /// be supplied by tests.</param>
-        public VsCredentialProviderImporter (
+        public VsCredentialProviderImporter(
             EnvDTE.DTE dte,
             Func<ICredentialProvider> fallbackProviderFactory,
             Action<string> errorDelegate,
@@ -75,36 +75,39 @@ namespace NuGetVSExtension
             _initializer = initializer ?? Initialize;
         }
 
-        [Import("VisualStudioAccountProvider", typeof(IVsCredentialProvider), AllowDefault = true)]
-        public IVsCredentialProvider ImportedProvider { get; set; }
+        [ImportMany(typeof(IVsCredentialProvider))]
+        public IEnumerable<IVsCredentialProvider> ImportedProviders { get; set; }
 
         /// <summary>
         /// Plugin providers are entered loaded the same way as other nuget extensions,
         /// matching any extension named CredentialProvider.*.exe.
         /// </summary>
         /// <returns>An enumeration of plugin providers</returns>
-        public ICredentialProvider GetProvider()
+        public IReadOnlyCollection<ICredentialProvider> GetProviders()
         {
-            ICredentialProvider result = null;
+            var results = new List<ICredentialProvider>();
 
             try
             {
                 _initializer();
 
-                if (ImportedProvider != null)
+                if (ImportedProviders != null)
                 {
-                    result = new VsCredentialProviderAdapter(ImportedProvider);
+                    foreach (var importedProvider in ImportedProviders)
+                    {
+                        results.Add(new VsCredentialProviderAdapter(importedProvider));
+                    }
                 }
 
                 // Dev15+ will provide a credential provider for VSTS.
                 // If we are in Dev14, and no imported VSTS provider is found,
                 // then fallback on the built-in VisualStudioAccountProvider
-                if (result == null && IsDev14)
+                if (results.Count == 0 && IsDev14)
                 {
                     // Handle any type load exception constructing the provider
                     try
                     {
-                        result = _fallbackProviderFactory();
+                        results.Add(_fallbackProviderFactory());
                     }
                     catch (Exception e) when
                         (e is BadImageFormatException ||
@@ -127,7 +130,7 @@ namespace NuGetVSExtension
                     e.Message));
             }
 
-            return result;
+            return results;
         }
 
         private void Initialize()

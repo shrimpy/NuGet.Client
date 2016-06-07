@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,8 +29,9 @@ namespace NuGet.VsExtension.Test
 
     public class VsCredentialProviderImporterTests
     {
+        private static readonly VisualStudioAccountProvider _visualStudioAccountProvider = new VisualStudioAccountProvider(null, null);
         private readonly Mock<DTE> _mockDte = new Mock<DTE>();
-        private readonly Func<Credentials.ICredentialProvider> _fallbackProviderFactory = () => new VisualStudioAccountProvider(null, null);
+        private readonly Func<Credentials.ICredentialProvider> _fallbackProviderFactory = () => _visualStudioAccountProvider;
         private readonly List<string> _errorMessages = new List<string>();
         private readonly Action<string> _errorDelegate;
 
@@ -55,9 +57,9 @@ namespace NuGet.VsExtension.Test
             _mockDte.Setup(x => x.Version).Returns("14.0.247200.00");
             var importer = GetTestableImporter();
 
-            var result = importer.GetProvider();
+            var results = importer.GetProviders();
 
-            Assert.IsType<VisualStudioAccountProvider>(result);
+            Assert.Contains(_visualStudioAccountProvider, results);
         }
 
         [Fact]
@@ -66,26 +68,26 @@ namespace NuGet.VsExtension.Test
             _mockDte.Setup(x => x.Version).Returns("15.0.123456.00");
             var importer = GetTestableImporter();
 
-            var result = importer.GetProvider();
+            var results = importer.GetProviders();
 
-            Assert.Null(result);
+            Assert.DoesNotContain(_visualStudioAccountProvider, results);
         }
 
         [Fact]
         public void WhenVstsImportFound_ThenDoNotInsertBuiltInProvider()
-            {
+        {
             _mockDte.Setup(x => x.Version).Returns("14.0.247200.00");
             var importer = GetTestableImporter();
             var testableProvider = new TeamSystem.NuGetCredentialProvider.VisualStudioAccountProvider();
-            importer.ImportedProvider = testableProvider;
+            importer.ImportedProviders = new List<IVsCredentialProvider> { testableProvider };
 
-            var result = importer.GetProvider();
+            var results = importer.GetProviders();
 
-            Assert.IsType<VsCredentialProviderAdapter>(result);
+            Assert.DoesNotContain(_visualStudioAccountProvider, results);
         }
 
         [Fact]
-        public void WhenVstsIntializerThrows_ThenGetProviderReturnsNull()
+        public void WhenVstsIntializerThrows_ThenGetProviderReturnsEmptyCollection()
         {
             _mockDte.Setup(x => x.Version).Returns("14.0.247200.00");
             var importer = new VsCredentialProviderImporter(
@@ -95,9 +97,9 @@ namespace NuGet.VsExtension.Test
                 () => { throw new ArgumentException(); });
             importer.Version = _mockDte.Object.Version;
 
-            var result = importer.GetProvider();
+            var results = importer.GetProviders();
 
-            Assert.Null(result);
+            Assert.Empty(results);
         }
     }
 }
