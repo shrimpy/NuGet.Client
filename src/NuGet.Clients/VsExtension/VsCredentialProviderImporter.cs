@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.ComponentModelHost;
 using NuGet.Credentials;
@@ -93,7 +94,8 @@ namespace NuGetVSExtension
 
                 if (ImportedProviders != null)
                 {
-                    foreach (var importedProvider in ImportedProviders)
+                    // Ensure imported providers ordering is deterministic
+                    foreach (var importedProvider in ImportedProviders.OrderBy(p => p.GetType().Name))
                     {
                         results.Add(new VsCredentialProviderAdapter(importedProvider));
                     }
