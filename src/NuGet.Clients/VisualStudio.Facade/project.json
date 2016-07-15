@@ -1,6 +1,10 @@
 ﻿{
   "dependencies": {
-    "Microsoft.VisualStudio.Shell.Interop": "7.10.6071"
+    "Microsoft.VisualStudio.Shell.Interop": "7.10.6071",
+    "Microsoft.VSSDK.BuildTools": {
+      "version": "14.2.25201",
+      "exclude": "compile"
+    }
   },
   "frameworks": {
     "net46": {}

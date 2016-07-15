@@ -14,7 +14,10 @@
     "Microsoft.VisualStudio.Text.UI": "14.2.25123",
     "Microsoft.VisualStudio.Text.UI.Wpf": "14.2.25123",
     "Microsoft.VisualStudio.Threading": "14.1.131",
-    "Microsoft.VSSDK.BuildTools": "14.2.25201"
+    "Microsoft.VSSDK.BuildTools": {
+      "version": "14.2.25201",
+      "exclude": "compile"
+    }
   },
   "frameworks": {
     "net46": {}
