@@ -78,5 +78,13 @@
 		<AssemblyAttributes Include="System.Resources.NeutralResourcesLanguage">
 		  <_Parameter1>en-US</_Parameter1>
 		</AssemblyAttributes>
+		<AssemblyAttributes Include="AssemblyMetadata">
+		  <_Parameter1>CommitHash</_Parameter1>
+		  <_Parameter2>0edf0a2c9d8c708b25a903ebde2d7744b3128dd2</_Parameter2>
+		</AssemblyAttributes>
+		<AssemblyAttributes Include="AssemblyMetadata">
+		  <_Parameter1>BuildBranch</_Parameter1>
+		  <_Parameter2>alpanov/commithash</_Parameter2>
+		</AssemblyAttributes>
 	</ItemGroup>
 </Project>
