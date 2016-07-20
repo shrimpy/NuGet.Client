@@ -738,7 +738,15 @@ namespace NuGet.CommandLine
         private void AddOutputFiles(Packaging.PackageBuilder builder)
         {
             // Get the target framework of the project
-            FrameworkName targetFramework = TargetFramework;
+            NuGetFramework nugetFramework;
+            if (_usingJsonFile && builder.TargetFrameworks.Any())
+            {
+                nugetFramework = builder.TargetFrameworks.First();
+            }
+            else
+            {
+                nugetFramework = NuGetFramework.Parse(TargetFramework.FullName);
+            }
 
             // Get the target file path
             string targetPath = TargetPath;
@@ -792,13 +800,12 @@ namespace NuGet.CommandLine
                     {
                         targetFolder = Path.Combine(ReferenceFolder, Path.GetDirectoryName(file.Replace(TargetPath, string.Empty)));
                     }
-                    else if (targetFramework == null)
+                    else if (nugetFramework == null)
                     {
                         targetFolder = ReferenceFolder;
                     }
                     else
                     {
-                        NuGetFramework nugetFramework = NuGetFramework.Parse(targetFramework.FullName);
                         string shortFolderName = nugetFramework.GetShortFolderName();
                         targetFolder = Path.Combine(ReferenceFolder, shortFolderName);
                     }
